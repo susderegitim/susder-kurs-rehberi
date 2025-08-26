@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ŞANLIURFA USTA ÖĞRETİCİLER EĞİTİM DERNEĞİ - Kurs Rehberi</title>
+  <meta name="description" content="SUSDER | MEB E-Yaygın Kurs Programları | www.susder.org">
+  <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .active-cat { @apply bg-blue-600 text-white font-semibold; }
+    .course-card:hover { @apply bg-blue-50 border-blue-300; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <div class="bg-blue-800 text-white text-center py-2 text-sm font-bold">
+    ŞANLIURFA USTA ÖĞRETİCİLER EĞİTİM DERNEĞİ (SUSDER)
+  </div>
+
+  <header class="bg-white shadow border-b px-6 py-5">
+    <h1 class="text-2xl font-bold text-gray-900">MEB E-Yaygın Kurs Rehberi</h1>
+    <p class="text-sm text-gray-600 mt-1">Hayat Boyu Öğrenme Genel Müdürlüğü Kurs Programları</p>
+  </header>
+
+  <div class="flex h-screen">
+
+    <nav class="w-72 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+      <h2 class="text-lg font-bold mb-4 text-blue-700">Kurs Alanları</h2>
+      <ul id="category-list">Yükleniyor...</ul>
+    </nav>
+
+    <main class="flex-1 bg-white border-r border-gray-200 p-6 overflow-y-auto">
+      <h2 id="current-category" class="text-xl font-semibold mb-4 text-gray-700">Alan Seçin</h2>
+      <div id="course-list"></div>
+    </main>
+
+    <aside class="w-96 bg-gray-50 p-6 overflow-y-auto border-l border-gray-200">
+      <div id="detail-panel" class="text-sm space-y-4">
+        <div class="text-center text-gray-500 py-10">
+          <p>Detay görüntülemek için bir kurs seçin.</p>
+          <img src="https://e-yaygin.meb.gov.tr/Content/images/logo.png" alt="MEB" class="mx-auto h-12 opacity-60 mt-4">
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <footer class="bg-white border-t px-6 py-3">
+    <p class="text-xs text-gray-500 text-center">
+      Bu platform, 
+      <a href="https://www.susder.org" target="_blank" class="text-blue-600">SUSDER</a> 
+      tarafından, 
+      <a href="https://e-yaygin.meb.gov.tr" target="_blank" class="text-blue-600">MEB E-Yaygın</a> 
+      verileri kullanılarak geliştirilmiştir. Tüm hakları MEB'e aittir.
+    </p>
+  </footer>
+
+  <script>
+    let kursVerisi = {};
+
+    async function loadData() {
+      try {
+        const response = await fetch('data.json');
+        if (!response.ok) throw new Error('Veri alınamadı');
+        kursVerisi = await response.json();
+        loadCategories();
+      } catch (err) {
+        document.getElementById('category-list').innerHTML = 
+          '<li class="text-red-600 p-2">❌ Veri yüklenemedi. Lütfen daha sonra deneyin.</li>';
+        console.error("Veri hatası:", err);
+      }
+    }
+
+    function loadCategories() {
+      const list = document.getElementById('category-list');
+      list.innerHTML = '';
+      const alanlar = Object.keys(kursVerisi).sort();
+
+      alanlar.forEach((alan, i) => {
+        const li = document.createElement('li');
+        li.textContent = alan;
+        li.className = 'p-2 rounded cursor-pointer hover:bg-blue-50';
+        if (i === 0) li.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+        li.onclick = () => loadCourses(alan, li);
+        list.appendChild(li);
+      });
+
+      if (alanlar.length > 0) loadCourses(alanlar[0], list.children[0]);
+    }
+
+    function loadCourses(alan, el) {
+      document.querySelectorAll('#category-list li').forEach(li => li.classList.remove('bg-blue-600', 'text-white', 'font-semibold'));
+      if (el) el.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+      document.getElementById('current-category').textContent = alan;
+      const courseList = document.getElementById('course-list');
+      courseList.innerHTML = '';
+      (kursVerisi[alan] || []).forEach(kurs => {
+        const card = document.createElement('div');
+        card.className = 'course-card p-3 border rounded hover:shadow transition cursor-pointer';
+        card.innerHTML = `<strong>${kurs.ad}</strong><div class="text-sm text-blue-600 mt-1">${kurs.sure}</div>`;
+        card.onclick = () => showDetail(kurs, alan);
+        courseList.appendChild(card);
+      });
+    }
+
+    function showDetail(kurs, alan) {
+      document.getElementById('detail-panel').innerHTML = `
+        <h3 class="font-bold text-lg text-blue-700">${kurs.ad}</h3>
+        <p><strong>Kurs Alanı:</strong> ${alan}</p>
+        <hr class="my-3 border-gray-300">
+        <p><strong>PROGRAMA GİRİŞ KOŞULLARI:</strong></p>
+        <p class="text-sm leading-relaxed">${kurs.girisKosullari}</p>
+        <hr class="my-3 border-gray-300">
+        <p><strong>EĞİTİMCİLERİN NİTELİĞİ:</strong></p>
+        <p class="text-sm leading-relaxed">${kurs.egiticiNiteligi}</p>
+        <hr class="my-3 border-gray-300">
+        <p><strong>PROGRAM SÜRESİ VE İÇERİĞİ:</strong></p>
+        <p class="text-sm leading-relaxed">${kurs.programIcerik}</p>
+      `;
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>

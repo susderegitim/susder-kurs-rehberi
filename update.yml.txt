@@ -1,0 +1,27 @@
+name: MEB Kurs Verisi Güncelle
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Python kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Bağımlılıkları yükle
+        run: |
+          pip install selenium beautifulsoup4 requests
+      - name: Veriyi çek
+        run: python scraper.py
+      - name: Değişiklikleri yayımla
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data.json
+          git commit -m "Veri güncellendi: $(date)" || exit 0
+          git push
